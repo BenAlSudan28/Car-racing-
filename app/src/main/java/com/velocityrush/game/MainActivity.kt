@@ -2,10 +2,15 @@ package com.velocityrush.game
 
 import android.app.Activity
 import android.os.Bundle
+import android.graphics.Color
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 
 class MainActivity : Activity() {
+
+    private lateinit var gameView: GameView
+    private lateinit var gameAudio: GameAudio
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,7 +21,29 @@ class MainActivity : Activity() {
 
         hideSystemUI()
 
-        setContentView(GameView(this))
+        val root = FrameLayout(this).apply {
+            setBackgroundColor(Color.BLACK)
+        }
+
+        gameView = GameView(this)
+
+        root.addView(
+            gameView,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        GameControls(
+            context = this,
+            gameView = gameView,
+            root = root
+        ).install()
+
+        gameAudio = GameAudio()
+
+        setContentView(root)
     }
 
     private fun hideSystemUI() {
@@ -36,5 +63,33 @@ class MainActivity : Activity() {
         if (hasFocus) {
             hideSystemUI()
         }
+    }
+
+    override fun onPause() {
+        if (::gameView.isInitialized) {
+            gameView.onPause()
+        }
+
+        if (::gameAudio.isInitialized) {
+            gameAudio.stop()
+        }
+
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (::gameView.isInitialized) {
+            gameView.onResume()
+        }
+    }
+
+    override fun onDestroy() {
+        if (::gameAudio.isInitialized) {
+            gameAudio.release()
+        }
+
+        super.onDestroy()
     }
 }
