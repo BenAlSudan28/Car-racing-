@@ -30,25 +30,20 @@ jobs:
           gradle-version: '8.7'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
 
-      - name: Accept licenses and install SDK packages
+      - name: Install Android SDK packages
         run: |
-          set +o pipefail
-          yes | sdkmanager --licenses > /dev/null
-          sdkmanager --install "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
 
       - name: Verify Android SDK
-        run: sdkmanager --list_installed
+        run: |
+          sdkmanager --list_installed
 
       - name: Build Debug APK
-        run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleDebug --stacktrace
-          else
-            gradle assembleDebug --stacktrace
-          fi
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
